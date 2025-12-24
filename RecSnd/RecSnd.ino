@@ -9,20 +9,23 @@
   #define CE_PIN  14
   #define CSN_PIN 15
   #define BUTTON_PIN 16
+  #define BUTTON_HIT 0
+  uint Node = 5;
 #else
   #define CE_PIN  9
   #define CSN_PIN 8
   #define BUTTON_PIN 4
+  #define BUTTON_HIT 1
+  uint Node = 191;
 #endif
 
 RF24 radio(CE_PIN, CSN_PIN); // CE, CSN
 
 const uint64_t commonAddress = 0xE8E8F0F0E1LL;
 
-#define NODE_ID 1  // Set to 1, 2, or 3
 #define MSGLEN 28
 struct Payload {
-  char nodeID;
+  uint nodeID;
   char message[MSGLEN];
 };
 
@@ -64,10 +67,10 @@ void setup() {
 void loop() {  
 
 
-  if (digitalRead(BUTTON_PIN) == 0 ) {
+  if (digitalRead(BUTTON_PIN) == BUTTON_HIT ) {
   
     Payload data;
-    data.nodeID = NODE_ID;
+    data.nodeID = Node;
     String m = "bcde";
     m.toCharArray(data.message, 28);    
     
@@ -84,12 +87,9 @@ void loop() {
   
   if (radio.available()) {
     Payload data;
-    //data.nodeID = NODE_ID;
-    //String m = "bcde";
-    //m.toCharArray(data.message, 28);
 
     radio.read(&data, sizeof(Payload)); 
-    if (data.nodeID != NODE_ID) {
+    if (data.nodeID != Node) {
       Serial.print("Node ");
       Serial.print(data.nodeID);
       Serial.print(" says: ");

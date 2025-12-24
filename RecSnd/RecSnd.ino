@@ -80,12 +80,15 @@ void loop() {
   }
   
   if (radio.available()) {
-    char txt_received[12] = "";
-    radio.read(&txt_received, sizeof(txt_received)); 
-    Serial.print("Received from: ");Serial.println(txt_received);
-    digitalWrite(LED_BUILTIN, HIGH);
-    delay(100);
-    digitalWrite(LED_BUILTIN, LOW);
-    //radio.stopListening(); 
+    Payload data;
+    radio.read(&data, sizeof(data));
+    
+    // Check if the message is from someone ELSE (not me)
+    if (data.nodeID != NODE_ID) {
+      Serial.print("Node ");
+      Serial.print(data.nodeID);
+      Serial.print(" says: ");
+      Serial.println(data.message);
+    }
   }
 }

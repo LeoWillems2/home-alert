@@ -19,7 +19,7 @@ RF24 radio(CE_PIN, CSN_PIN); // CE, CSN
 
 const uint64_t commonAddress = 0xE8E8F0F0E1LL;
 
-#define NODE_ID 3  // Set to 1, 2, or 3
+#define NODE_ID 1  // Set to 1, 2, ....
 #define MSGLEN 28
 struct Payload {
   int nodeID;
@@ -70,6 +70,7 @@ void loop() {
     char message[MSGLEN];
     strcpy(message+1, "abcd");
     message[0] = NODE_ID;
+    Serial.println(message+1);
     
     
     radio.stopListening();
@@ -85,6 +86,7 @@ void loop() {
   
   if (radio.available()) {
     char message[MSGLEN];
+    radio.read(&message, sizeof(message)); 
     if (message[0] != NODE_ID) {
       Serial.print("Node ");
       Serial.print(message[0]);

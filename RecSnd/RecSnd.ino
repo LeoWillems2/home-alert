@@ -19,11 +19,10 @@ RF24 radio(CE_PIN, CSN_PIN); // CE, CSN
 
 const uint64_t commonAddress = 0xE8E8F0F0E1LL;
 
-#define NODE_ID 1  // Set to 1, 2, ....
+#define NODE_ID 1  // Set to 1, 2, or 3
 #define MSGLEN 28
 struct Payload {
-  int nodeID;
-   int x;
+  char nodeID;
   char message[MSGLEN];
 };
 
@@ -67,15 +66,14 @@ void loop() {
 
   if (digitalRead(BUTTON_PIN) == 0 ) {
   
-    char message[MSGLEN];
-    strcpy(message+1, "abcd");
-    message[0] = NODE_ID;
-    Serial.println(message+1);
-    
+    Payload data;
+    data.nodeID = NODE_ID;
+    String m = "bcde";
+    m.toCharArray(data.message, 28);    
     
     radio.stopListening();
     for(int i=0; i<3; i++) {
-      radio.write(&message, sizeof(message));
+      radio.write(&data, sizeof(Payload));
       delay(100);
     }
     delay(1000);
@@ -85,13 +83,17 @@ void loop() {
   }
   
   if (radio.available()) {
-    char message[MSGLEN];
-    radio.read(&message, sizeof(message)); 
-    if (message[0] != NODE_ID) {
+    Payload data;
+    //data.nodeID = NODE_ID;
+    //String m = "bcde";
+    //m.toCharArray(data.message, 28);
+
+    radio.read(&data, sizeof(Payload)); 
+    if (data.nodeID != NODE_ID) {
       Serial.print("Node ");
-      Serial.print(message[0]);
+      Serial.print(data.nodeID);
       Serial.print(" says: ");
-      Serial.println(message+1);
+      Serial.println(data.message);
     }
   }
 }

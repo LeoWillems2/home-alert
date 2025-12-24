@@ -10,22 +10,25 @@
   #define CSN_PIN 15
   #define BUTTON_PIN 16
   #define BUTTON_HIT 0
-  uint Node = 5;
+  short Addr1 = 5;
+  char Addr2 = 'A';
 #else
   #define CE_PIN  9
   #define CSN_PIN 8
   #define BUTTON_PIN 4
   #define BUTTON_HIT 1
-  uint Node = 191;
+  short Addr1 = 191;
+  short Addr2 = '_';
 #endif
 
-RF24 radio(CE_PIN, CSN_PIN); // CE, CSN
+RF24 radio(CE_PIN, CSN_PIN);
 
 const uint64_t commonAddress = 0xE8E8F0F0E1LL;
 
-#define MSGLEN 28
+#define MSGLEN 26
 struct Payload {
-  uint nodeID;
+  short AddressP1;
+  char AddressP2;
   char message[MSGLEN];
 };
 
@@ -70,9 +73,10 @@ void loop() {
   if (digitalRead(BUTTON_PIN) == BUTTON_HIT ) {
   
     Payload data;
-    data.nodeID = Node;
+    data.AddressP1 = Addr1;
+    data.AddressP2 = Addr2;
     String m = "bcde";
-    m.toCharArray(data.message, 28);    
+    m.toCharArray(data.message, MSGLEN);    
     
     radio.stopListening();
     for(int i=0; i<3; i++) {
@@ -89,9 +93,12 @@ void loop() {
     Payload data;
 
     radio.read(&data, sizeof(Payload)); 
-    if (data.nodeID != Node) {
-      Serial.print("Node ");
-      Serial.print(data.nodeID);
+    if (data.AddressP1 == Addr1 && data.AddressP2 == Addr2) {
+		// me myself && I
+    } else {
+      Serial.print("Addr ");
+      Serial.print(data.AddressP1);
+      Serial.print(data.AddressP2);
       Serial.print(" says: ");
       Serial.println(data.message);
     }

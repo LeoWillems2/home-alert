@@ -5,7 +5,7 @@
 
 // change for addresses, device and behaviour
 #define PICO
-#define sendAck true
+#define sendAck false
 #define consoleLog true
 
 #if defined(PICO)
@@ -114,12 +114,12 @@ void loop() {
       if (receivedAlert){
         String m = "confirmed";
         send(m, 'C');   // confirm
-        if (consoleLog) Serial.println("Led groen, Buur reageert");
+        if (consoleLog) Serial.println("Led bij buur groen, Buur reageert");
       } else {
         String m = "HELP";
         send(m, 'B');
         // ledje op geel: visual feedback dat het is verzonden
-        if (consoleLog) Serial.println("Led geel, HELP verzonden");
+        if (consoleLog) Serial.println("Led geel, HELP verzonden door mij");
       }
       return;
     }
@@ -152,19 +152,17 @@ void loop() {
         return;
       }
 
-      if (data.Type == 'B'){
+      if (data.Type == 'B'){   // bij buur
         receivedAlert = true;   // piep, alarm etc. ledje op geel
         if (consoleLog) Serial.println("Led geel, HELP ontvangen");
-
         return;
       }
 
-      if (data.Type == 'C'){
+      if (data.Type == 'C'){    // bij mij
         if (consoleLog) Serial.println("Led groen, Buur heeft gereageerd");
         // ledje op groen:   we hebben een ack op de HELP
         return;
       }
-
     }
   }
 }

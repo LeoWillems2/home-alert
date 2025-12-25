@@ -9,6 +9,7 @@
 #define consoleLog true
 
 #if defined(PICO)
+  //#include "pico/cyw43_arch.h"
   #define CE_PIN  14
   #define CSN_PIN 15
   #define BUTTON_PIN 16
@@ -40,9 +41,6 @@ struct Payload {
 
 void setup() {
 
-  pinMode(BUTTON_PIN, INPUT_PULLUP);
-  pinMode(LED_BUILTIN, OUTPUT);
-
   if (consoleLog)  {
     Serial.begin(9600);
     while (!Serial) {
@@ -51,7 +49,15 @@ void setup() {
     printf_begin();
   }
 
+  pinMode(BUTTON_PIN, INPUT_PULLUP);
+  pinMode(LED_BUILTIN, OUTPUT);
+
 #ifdef PICO
+
+   //delay(4000);
+  //cyw43_arch_init();
+  //cyw43_arch_deinit();
+
   SPI.setSCK(6);
   SPI.setTX(7);
   SPI.setRX(4);
@@ -67,7 +73,8 @@ void setup() {
     }
   }
 
-  if (consoleLog) radio.printDetails();
+  //if (consoleLog) radio.printDetails();
+
   radio.openWritingPipe(commonAddress);
   radio.openReadingPipe(1, commonAddress);
   radio.setPALevel(RF24_PA_MIN);
@@ -116,6 +123,7 @@ void loop() {
         String m = "confirmed";
         send(m, 'C');   // confirm
         if (consoleLog) Serial.println("Led bij buur groen, Buur reageert");
+        delay(5000);  //second button press becomes 'B'......  geen opllossing voor bedacht.....
       } else {
         String m = "HELP";
         send(m, 'B');
@@ -126,6 +134,7 @@ void loop() {
     }
   }  else {
     buttonPressed = false;
+    return;
   }
   
   if (radio.available()) {

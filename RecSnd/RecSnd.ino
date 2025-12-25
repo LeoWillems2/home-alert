@@ -104,13 +104,23 @@ void send(String m, char t) {
 }
 
 bool buttonPressed = false;
+bool receivedAlert = false;
+
 void loop() {  
 
   if (digitalRead(BUTTON_PIN) == BUTTON_HIT ) {   // only send once, then ignore  a still active button.
     if (!buttonPressed) {
       buttonPressed = true;
-      String m = "HELP";
-      send(m, 'B');  // B button press
+      if (receivedAlert){
+        String m = "confirmed";
+        send(m, 'C');   // confirm
+        if (consoleLog) Serial.println("Led groen, Buur reageert");
+      } else {
+        String m = "HELP";
+        send(m, 'B');
+        // ledje op geel: visual feedback dat het is verzonden
+        if (consoleLog) Serial.println("Led geel, HELP verzonden");
+      }
       return;
     }
   }  else {
@@ -139,7 +149,22 @@ void loop() {
       if (sendAck && data.Type != 'A') {
         delay(200); // wait a little.
         send("ack", 'A');
+        return;
       }
+
+      if (data.Type == 'B'){
+        receivedAlert = true;   // piep, alarm etc. ledje op geel
+        if (consoleLog) Serial.println("Led geel, HELP ontvangen");
+
+        return;
+      }
+
+      if (data.Type == 'C'){
+        if (consoleLog) Serial.println("Led groen, Buur heeft gereageerd");
+        // ledje op groen:   we hebben een ack op de HELP
+        return;
+      }
+
     }
   }
 }

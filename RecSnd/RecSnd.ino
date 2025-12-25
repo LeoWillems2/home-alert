@@ -94,17 +94,21 @@ void send(String m, char t) {
       radio.write(&data, sizeof(Payload));
       delay(100);
     }
-  delay(400);
   radio.startListening();
 }
 
+bool buttonPressed = false;
 void loop() {  
 
-  if (digitalRead(BUTTON_PIN) == BUTTON_HIT ) {
-    String m = "HELP";
-    send(m, 'B');  // B button press
-    delay(1000);    // button off, manual, change if button is removed
-    return;
+  if (digitalRead(BUTTON_PIN) == BUTTON_HIT ) {   // only send once, then ignore  a still active button.
+    if (!buttonPressed) {
+      buttonPressed = true;
+      String m = "HELP";
+      send(m, 'B');  // B button press
+      return;
+    }
+  }  else {
+    buttonPressed = false;
   }
   
   if (radio.available()) {
@@ -125,6 +129,8 @@ void loop() {
       Serial.println(data.message);
 
       if (sendAck && data.Type != 'A') {
+        delay(200); // wait a little.
+        send("ack", 'A');
       }
     }
   }

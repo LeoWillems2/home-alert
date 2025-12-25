@@ -21,14 +21,17 @@
   short Addr2 = '_';
 #endif
 
+#define sendAck true
+
 RF24 radio(CE_PIN, CSN_PIN);
 
-const uint64_t commonAddress = 0xE8E8F0F0E1LL;
+const uint64_t commonAddress = 0xE9F8F0F0E1LL;
 
 #define MSGLEN 26
 struct Payload {
   short AddressP1;
   char AddressP2;
+  char Type;
   char message[MSGLEN];
 };
 
@@ -45,12 +48,14 @@ void setup() {
 
   delay(500);
 
+
 #ifdef PICO
   SPI.setSCK(6);
   SPI.setTX(7);
   SPI.setRX(4);
   SPI.begin();
 #endif
+
 
   radio.begin();
 
@@ -67,25 +72,38 @@ void setup() {
   radio.startListening();
 };
 
-void loop() {  
+void blink(int j){
+  for (int i=0; i < j; ++i) {
+    digitalWrite(LED_BUILTIN, HIGH);  
+    delay(100);  
+    digitalWrite(LED_BUILTIN, LOW);
+    delay(100);  
+  }
+}
 
+void send(String m, char t) {
 
-  if (digitalRead(BUTTON_PIN) == BUTTON_HIT ) {
-  
-    Payload data;
-    data.AddressP1 = Addr1;
-    data.AddressP2 = Addr2;
-    String m = "bcde";
-    m.toCharArray(data.message, MSGLEN);    
-    
-    radio.stopListening();
+  Payload data;
+  data.AddressP1 = Addr1;
+  data.AddressP2 = Addr2;
+  data.Type = t;
+  m.toCharArray(data.message, MSGLEN);    
+
+  radio.stopListening();
     for(int i=0; i<3; i++) {
       radio.write(&data, sizeof(Payload));
       delay(100);
     }
-    delay(1000);
+  delay(400);
+  radio.startListening();
+}
 
-    radio.startListening();
+void loop() {  
+
+  if (digitalRead(BUTTON_PIN) == BUTTON_HIT ) {
+    String m = "HELP";
+    send(m, 'B');  // B button press
+    delay(1000);    // button off, manual, change if button is removed
     return;
   }
   
@@ -93,14 +111,21 @@ void loop() {
     Payload data;
 
     radio.read(&data, sizeof(Payload)); 
+
     if (data.AddressP1 == Addr1 && data.AddressP2 == Addr2) {
-		// me myself && I
+		  return; // me myself && I
     } else {
+      blink(3);
       Serial.print("Addr ");
       Serial.print(data.AddressP1);
       Serial.print(data.AddressP2);
+      Serial.print(" ");
+      Serial.print(data.Type);
       Serial.print(" says: ");
       Serial.println(data.message);
+
+      if (sendAck && data.Type != 'A') {
+      }
     }
   }
 }

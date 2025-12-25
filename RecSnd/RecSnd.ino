@@ -5,11 +5,10 @@
 
 // change for addresses, device and behaviour
 #define PICO
-#define sendAck false
+#define sendAck true
 #define consoleLog true
 
 #if defined(PICO)
-  //#include "pico/cyw43_arch.h"
   #define CE_PIN  14
   #define CSN_PIN 15
   #define BUTTON_PIN 16
@@ -20,7 +19,7 @@
   #define CE_PIN  9
   #define CSN_PIN 8
   #define BUTTON_PIN 4
-  #define BUTTON_HIT 1
+  #define BUTTON_HIT 0
   short Addr1 = 191;
   short Addr2 = '_';
 #endif
@@ -119,22 +118,21 @@ void loop() {
     if (!buttonPressed) {
       buttonPressed = true;
       if (receivedAlert){
+        if (consoleLog) Serial.println("Led bij buur groen, Buur reageert");
         receivedAlert = false;
         String m = "confirmed";
         send(m, 'C');   // confirm
-        if (consoleLog) Serial.println("Led bij buur groen, Buur reageert");
-        delay(5000);  //second button press becomes 'B'......  geen opllossing voor bedacht.....
+        delay(1000);  //second button press becomes 'B'......  geen opllossing voor bedacht.....
       } else {
+        if (consoleLog) Serial.println("Led geel, HELP verzonden door mij");
         String m = "HELP";
         send(m, 'B');
         // ledje op geel: visual feedback dat het is verzonden
-        if (consoleLog) Serial.println("Led geel, HELP verzonden door mij");
       }
       return;
     }
   }  else {
-    buttonPressed = false;
-    return;
+      buttonPressed = false;
   }
   
   if (radio.available()) {
@@ -143,6 +141,7 @@ void loop() {
     radio.read(&data, sizeof(Payload)); 
 
     if (data.AddressP1 == Addr1 && data.AddressP2 == Addr2) {
+      Serial.println("Me!");
 		  return; // me, myself and I
     } else {
       blink(3);
@@ -152,6 +151,8 @@ void loop() {
         Serial.print(data.AddressP2);
         Serial.print(" ");
         Serial.print(data.Type);
+        Serial.print(" ");
+        Serial.print(receivedAlert);
         Serial.print(" says: ");
         Serial.println(data.message);
       }

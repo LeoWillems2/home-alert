@@ -112,6 +112,7 @@ void loop() {
     if (!buttonPressed) {
       buttonPressed = true;
       if (receivedAlert){
+        receivedAlert = false;
         String m = "confirmed";
         send(m, 'C');   // confirm
         if (consoleLog) Serial.println("Led bij buur groen, Buur reageert");

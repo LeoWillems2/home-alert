@@ -3,7 +3,7 @@
 #include <nRF24L01.h>
 #include <printf.h>
 
-// change for addresses, device and behaviour
+// change below for addresses, device and behaviour
 
 #define sendAck true
 int consoleLog = true;
@@ -26,7 +26,7 @@ int consoleLog = true;
 
 const uint64_t commonAddress = 0xE9F8F0F0E1LL;
 
-// below there wait dragons....
+// Beyond here there be dragons....
 
 RF24 radio(CE_PIN, CSN_PIN);
 

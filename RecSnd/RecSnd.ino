@@ -4,11 +4,11 @@
 #include <printf.h>
 
 // change for addresses, device and behaviour
-#define PICO
-#define sendAck true
-#define consoleLog true
 
-#if defined(PICO)
+#define sendAck true
+int consoleLog = true;
+
+#if defined(ARDUINO_ARCH_RP2040)        // PICO
   #define CE_PIN  14
   #define CSN_PIN 15
   #define BUTTON_PIN 16
@@ -39,24 +39,26 @@ struct Payload {
 };
 
 void setup() {
-
   if (consoleLog)  {
+    int n = 0;
     Serial.begin(9600);
     while (!Serial) {
+        if (n > 1500) {
+          consoleLog = false;
+          break;          // give up, Pico only.....  Serial fails if not connected to something.
+        }
+        n++;
         delay(10); 
     }
-    printf_begin();
+    
   }
+
+  if (consoleLog) printf_begin();
 
   pinMode(BUTTON_PIN, INPUT_PULLUP);
   pinMode(LED_BUILTIN, OUTPUT);
 
-#ifdef PICO
-
-   //delay(4000);
-  //cyw43_arch_init();
-  //cyw43_arch_deinit();
-
+#ifdef ARDUINO_ARCH_RP2040
   SPI.setSCK(6);
   SPI.setTX(7);
   SPI.setRX(4);
@@ -73,10 +75,10 @@ void setup() {
   }
 
   //if (consoleLog) radio.printDetails();
-
   radio.openWritingPipe(commonAddress);
   radio.openReadingPipe(1, commonAddress);
-  radio.setPALevel(RF24_PA_MIN);
+  radio.setPALevel(RF24_PA_LOW);
+  radio.setDataRate(RF24_250KBPS);
   radio.setAutoAck(false);
   radio.startListening();
 };
@@ -91,7 +93,6 @@ void blink(int j){
 }
 
 void send(String m, char t) {
-
   Payload data;
   data.AddressP1 = Addr1;
   data.AddressP2 = Addr2;
@@ -141,7 +142,6 @@ void loop() {
     radio.read(&data, sizeof(Payload)); 
 
     if (data.AddressP1 == Addr1 && data.AddressP2 == Addr2) {
-      Serial.println("Me!");
 		  return; // me, myself and I
     } else {
       blink(3);
@@ -151,8 +151,6 @@ void loop() {
         Serial.print(data.AddressP2);
         Serial.print(" ");
         Serial.print(data.Type);
-        Serial.print(" ");
-        Serial.print(receivedAlert);
         Serial.print(" says: ");
         Serial.println(data.message);
       }
@@ -160,7 +158,6 @@ void loop() {
       if (sendAck && data.Type != 'A') {
         delay(200); // wait a little.
         send("ack", 'A');
-        return;
       }
 
       if (data.Type == 'B'){   // bij buur

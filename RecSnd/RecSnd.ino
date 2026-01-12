@@ -11,15 +11,16 @@ int consoleLog = true;
 #if defined(ARDUINO_ARCH_RP2040)        // PICO
   #define CE_PIN  14
   #define CSN_PIN 15
-  #define BUTTON_PIN 16
-  #define BUTTON_HIT 0
+ 
   short Addr1 = 5;
   char Addr2 = 'A';
 #else
   #define CE_PIN  9
   #define CSN_PIN 8
-  #define BUTTON_PIN 4
+  #define BUTTON_PIN 3
   #define BUTTON_HIT 0
+  #define RED_PIN 4
+  #define GREEN_PIN 5
   short Addr1 = 191;
   short Addr2 = '_';
 #endif
@@ -53,10 +54,13 @@ void setup() {
     
   }
 
+  
+
   if (consoleLog) printf_begin();
 
   pinMode(BUTTON_PIN, INPUT_PULLUP);
   pinMode(LED_BUILTIN, OUTPUT);
+
 
 #ifdef ARDUINO_ARCH_RP2040
   SPI.setSCK(6);
@@ -92,6 +96,28 @@ void blink(int j){
   }
 }
 
+void blink_green(int j){
+  Serial.println("blink_green");
+  for (int i=0; i < j; ++i) {
+    digitalWrite(GREEN_PIN, HIGH);  
+    delay(200);  
+    digitalWrite(GREEN_PIN, LOW);
+    delay(200);  
+  }
+}
+
+void blink_red(int j){
+  Serial.println("blink_red");
+  for (int i=0; i < j; ++i) {
+    digitalWrite(RED_PIN, HIGH);  
+    delay(200);  
+    digitalWrite(RED_PIN, LOW);
+    delay(200);  
+  }
+}
+
+
+
 void send(String m, char t) {
   Payload data;
   data.AddressP1 = Addr1;
@@ -120,12 +146,17 @@ void loop() {
       buttonPressed = true;
       if (receivedAlert){
         if (consoleLog) Serial.println("Led bij buur groen, Buur reageert");
+        digitalWrite(GREEN_PIN, HIGH); 
+        digitalWrite(RED_PIN, LOW);  
         receivedAlert = false;
         String m = "confirmed";
         send(m, 'C');   // confirm
         delay(1000);  //second button press becomes 'B'......  geen opllossing voor bedacht.....
       } else {
         if (consoleLog) Serial.println("Led geel, HELP verzonden door mij");
+        digitalWrite(RED_PIN, HIGH);  
+        digitalWrite(GREEN_PIN, LOW);  
+
         String m = "HELP";
         send(m, 'B');
         // ledje op geel: visual feedback dat het is verzonden
@@ -163,11 +194,17 @@ void loop() {
       if (data.Type == 'B'){   // bij buur
         receivedAlert = true;   // piep, alarm etc. ledje op geel
         if (consoleLog) Serial.println("Led geel, HELP ontvangen");
+        digitalWrite(RED_PIN, HIGH);  
+        digitalWrite(GREEN_PIN, LOW);  
+
         return;
       }
 
       if (data.Type == 'C'){    // bij mij
         if (consoleLog) Serial.println("Led groen, Buur heeft gereageerd");
+        digitalWrite(GREEN_PIN, HIGH);  
+        digitalWrite(RED_PIN, LOW);  
+
         // ledje op groen:   we hebben een ack op de HELP
         return;
       }

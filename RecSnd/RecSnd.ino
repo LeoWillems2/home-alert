@@ -3,6 +3,8 @@
 #include <nRF24L01.h>
 #include <printf.h>
 
+// https://rf24.readthedocs.io/en/v1.4.4/classRF24.html
+
 // change below for addresses, device and behaviour
 
 #define sendAck true
@@ -60,6 +62,8 @@ void setup() {
 
   pinMode(BUTTON_PIN, INPUT_PULLUP);
   pinMode(LED_BUILTIN, OUTPUT);
+  pinMode(GREEN_PIN, OUTPUT);
+  pinMode(RED_PIN, OUTPUT);
 
 
 #ifdef ARDUINO_ARCH_RP2040
@@ -81,7 +85,7 @@ void setup() {
   //if (consoleLog) radio.printDetails();
   radio.openWritingPipe(commonAddress);
   radio.openReadingPipe(1, commonAddress);
-  radio.setPALevel(RF24_PA_LOW);
+  radio.setPALevel(RF24_PA_LOW);			// MIN LOW HIGH MAX
   radio.setDataRate(RF24_250KBPS);
   radio.setAutoAck(false);
   radio.startListening();
@@ -140,6 +144,7 @@ bool buttonPressed = false;
 bool receivedAlert = false;
 
 void loop() {  
+
 
   if (digitalRead(BUTTON_PIN) == BUTTON_HIT ) {   // only send once, then ignore  a still active button.
     if (!buttonPressed) {
